@@ -1,0 +1,30 @@
+name: Run University ERP tests
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Check Python syntax
+        run: python -m compileall -q app.py tests
+      - name: Run tests and save console output
+        run: |
+          python -m pytest -v 2>&1 | tee test-output.txt
+          exit ${PIPESTATUS[0]}
+      - name: Upload test output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: university-erp-test-output
+          path: test-output.txt
